@@ -20,88 +20,86 @@ nltk.download('punkt')
 app = Flask(__name__)
 
 
-def ourModel():
-	drive.mount('/content/gdrive')
-	df_fake=pd.read_csv('Fake.csv')
-	df_true=pd.read_csv('True.csv')
+df_fake=pd.read_csv('Fake.csv')
+df_true=pd.read_csv('True.csv')
 
 
 	# add a 'label' column filled with the booleans False and True for the fake news and true news datasets respectively
-	df_fake['label'] = False
-	df_true['label'] = True
+df_fake['label'] = False
+df_true['label'] = True
 	# combines and randomizes the two datasets
-	combine_set = pd.concat([df_fake,df_true]).sample(frac =  1,random_state = 1)
+combine_set = pd.concat([df_fake,df_true]).sample(frac =  1,random_state = 1)
 
 
 	# Gets the labels from the label column
-	labels = combine_set.label
+labels = combine_set.label
 
 	# equally splits the combined dataset into test and training datasets; 
 	# separates text and label columns from the combined data sets
 	# uses 80% of each divided part of the dataset as a training set 
 	# the other 20%s become test sets 
 	# randomizes divided parts of dataset 7 times
-	x_train,x_test,y_train,y_test=train_test_split(combine_set['text'], labels, test_size=0.2, random_state=7)
+x_train,x_test,y_train,y_test=train_test_split(combine_set['text'], labels, test_size=0.2, random_state=7)
 
 	# this basically starts a feature extraction command that turns text documents into TF-IDF features
 	# TF-IDF features are bascially words that have been given a numerical value to represent how significant they are
 	# stop_words='english' removes all english stop words from the text i.e. "a", "an", "the", "be", etc.
 	# max_df = 0.7 makes it so that all words that appear in more than 70% of the given documents are not included when making the features
 	# it filters these because at a certain point of commonality, certain words just become noise for the model like stop words; they don't help distinguish False articles from True articles 
-	tfidf_vectorizer=TfidfVectorizer(stop_words='english', max_df=0.7)
+tfidf_vectorizer=TfidfVectorizer(stop_words='english', max_df=0.7)
 	# Basically applies the above filters to the test and training sets for one category of label
-	tfidf_train=tfidf_vectorizer.fit_transform(x_train) 
-	tfidf_test=tfidf_vectorizer.transform(x_test)
+tfidf_train=tfidf_vectorizer.fit_transform(x_train) 
+tfidf_test=tfidf_vectorizer.transform(x_test)
 
 	# Initialize the `count_vectorizer` 
-	count_vectorizer = CountVectorizer(stop_words='english')
+count_vectorizer = CountVectorizer(stop_words='english')
 
 	# Fit and transform the training data.
-	count_train = count_vectorizer.fit_transform(x_train)
+count_train = count_vectorizer.fit_transform(x_train)
 
 	# Transform the test set 
-	count_test = count_vectorizer.transform(x_test)
+count_test = count_vectorizer.transform(x_test)
 	# Get the feature names of `tfidf_vectorizer` 
-	print(tfidf_vectorizer.get_feature_names()[-10:])
+print(tfidf_vectorizer.get_feature_names()[-10:])
 	# Get the feature names of `count_vectorizer` 
-	print(count_vectorizer.get_feature_names()[0:10])
+print(count_vectorizer.get_feature_names()[0:10])
 	# initializes a Passive Agressive Classifier machine learning algorithm and assigns it to "pac"; makes it so that this model will go over training data 50 times; 
 	# the more times a model runs on a training set, the more accurate it is, but it is important not to overfit the model, so 50 is a reasonable number of times to run it through the training set
 	# passive-aggressive algorithms are a family of machine learning algorithms for large-scale learning(perfect for our datasets with 20,000+ articles)
-	pac=PassiveAggressiveClassifier(max_iter=50)
-	pac.fit(tfidf_train,y_train)
+pac=PassiveAggressiveClassifier(max_iter=50)
+pac.fit(tfidf_train,y_train)
 	# predict on the test set and calculate accuracy, recall, precision, and f1
-	y_pred=pac.predict(tfidf_test)
-	print(f'Accuracy: {round(accuracy_score(y_test,y_pred)*100,2)}%')
-	print(f'Recall: {round(recall_score(y_test,y_pred)*100,2)}%')
-	print(f'Precision: {round(precision_score(y_test,y_pred)*100,2)}%')
-	print(f'F1: {round(f1_score(y_test,y_pred)*100,2)}%')
-	clf = MultinomialNB() 
-	clf.fit(count_train, y_train)
-	pred = clf.predict(count_test)
-	score = accuracy_score(y_test, pred)
-	print(f'Accuracy: {round(accuracy_score(y_test,pred)*100,2)}%')
-	print(f'Recall: {round(recall_score(y_test,pred)*100,2)}%')
-	print(f'Precision: {round(precision_score(y_test,pred)*100,2)}%')
-	print(f'F1: {round(f1_score(y_test,pred)*100,2)}%')
-	clf = MultinomialNB() 
-	clf.fit(tfidf_train, y_train)
-	pred = clf.predict(tfidf_test)
-	score = accuracy_score(y_test, pred)
-	score = accuracy_score(y_test, pred)
-	print(f'Accuracy: {round(accuracy_score(y_test,pred)*100,2)}%')
-	print(f'Recall: {round(recall_score(y_test,pred)*100,2)}%')
-	print(f'Precision: {round(precision_score(y_test,pred)*100,2)}%')
-	print(f'F1: {round(f1_score(y_test,pred)*100,2)}%')
-	linear_clf = PassiveAggressiveClassifier(max_iter=50)
-	linear_clf.fit(tfidf_train, y_train)
-	pred = linear_clf.predict(tfidf_test)
-	score = accuracy_score(y_test, pred)
-	score = accuracy_score(y_test, pred)
-	print(f'Accuracy: {round(accuracy_score(y_test,pred)*100,2)}%')
-	print(f'Recall: {round(recall_score(y_test,pred)*100,2)}%')
-	print(f'Precision: {round(precision_score(y_test,pred)*100,2)}%')
-	print(f'F1: {round(f1_score(y_test,pred)*100,2)}%')
+y_pred=pac.predict(tfidf_test)
+print(f'Accuracy: {round(accuracy_score(y_test,y_pred)*100,2)}%')
+print(f'Recall: {round(recall_score(y_test,y_pred)*100,2)}%')
+print(f'Precision: {round(precision_score(y_test,y_pred)*100,2)}%')
+print(f'F1: {round(f1_score(y_test,y_pred)*100,2)}%')
+clf = MultinomialNB() 
+clf.fit(count_train, y_train)
+pred = clf.predict(count_test)
+score = accuracy_score(y_test, pred)
+print(f'Accuracy: {round(accuracy_score(y_test,pred)*100,2)}%')
+print(f'Recall: {round(recall_score(y_test,pred)*100,2)}%')
+print(f'Precision: {round(precision_score(y_test,pred)*100,2)}%')
+print(f'F1: {round(f1_score(y_test,pred)*100,2)}%')
+clf = MultinomialNB() 
+clf.fit(tfidf_train, y_train)
+pred = clf.predict(tfidf_test)
+score = accuracy_score(y_test, pred)
+score = accuracy_score(y_test, pred)
+print(f'Accuracy: {round(accuracy_score(y_test,pred)*100,2)}%')
+print(f'Recall: {round(recall_score(y_test,pred)*100,2)}%')
+print(f'Precision: {round(precision_score(y_test,pred)*100,2)}%')
+print(f'F1: {round(f1_score(y_test,pred)*100,2)}%')
+linear_clf = PassiveAggressiveClassifier(max_iter=50)
+linear_clf.fit(tfidf_train, y_train)
+pred = linear_clf.predict(tfidf_test)
+score = accuracy_score(y_test, pred)
+score = accuracy_score(y_test, pred)
+print(f'Accuracy: {round(accuracy_score(y_test,pred)*100,2)}%')
+print(f'Recall: {round(recall_score(y_test,pred)*100,2)}%')
+print(f'Precision: {round(precision_score(y_test,pred)*100,2)}%')
+print(f'F1: {round(f1_score(y_test,pred)*100,2)}%')
 
 
 def most_informative_feature_for_binary_classification(vectorizer, classifier, n=100):
