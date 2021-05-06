@@ -5,7 +5,6 @@ import itertools
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.naive_bayes import MultinomialNB
-from sklearn import svm
 from numpy import average
 import re
 from sklearn.model_selection import train_test_split
@@ -13,15 +12,18 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import PassiveAggressiveClassifier
 from sklearn.metrics import accuracy_score, confusion_matrix, precision_score, recall_score, f1_score, classification_report
 import seaborn as sns
+from nltk.corpus import stopwords 
+from nltk.tokenize import word_tokenize
+import nltk
+nltk.download('stopwords')
+nltk.download('punkt')
 app = Flask(__name__)
 
-@app.route('/')
-def index():
-	return render_template('index.html')
+
 def ourModel():
 	drive.mount('/content/gdrive')
-	df_fake=pd.read_csv('/content/gdrive/My Drive/Fake.csv')
-	df_true=pd.read_csv('/content/gdrive/My Drive/True.csv')
+	df_fake=pd.read_csv('Fake.csv')
+	df_true=pd.read_csv('True.csv')
 
 
 	# add a 'label' column filled with the booleans False and True for the fake news and true news datasets respectively
@@ -100,41 +102,39 @@ def ourModel():
 	print(f'Recall: {round(recall_score(y_test,pred)*100,2)}%')
 	print(f'Precision: {round(precision_score(y_test,pred)*100,2)}%')
 	print(f'F1: {round(f1_score(y_test,pred)*100,2)}%')
-	def most_informative_feature_for_binary_classification(vectorizer, classifier, n=100):
-	    """
-	    See: https://stackoverflow.com/a/26980472
-    
-    	Identify most important features if given a vectorizer and binary classifier. Set n to the number
-    	of weighted features you would like to show. (Note: current implementation merely prints and does not 
-    	return top classes.)
-    	"""
 
-    	class_labels = classifier.classes_
-    	feature_names = vectorizer.get_feature_names()
-    	topn_class1 = sorted(zip(classifier.coef_[0], feature_names))[:n]
-    	topn_class2 = sorted(zip(classifier.coef_[0], feature_names))[-n:]
-    	data = []
 
-    	for coef, feat in topn_class1:
-    	    print(class_labels[0], coef, feat)
-    	    data.append([feat, coef])
+def most_informative_feature_for_binary_classification(vectorizer, classifier, n=100):
+	class_labels = classifier.classes_
+	feature_names = vectorizer.get_feature_names()
+	topn_class1 = sorted(zip(classifier.coef_[0], feature_names))[:n]
+	topn_class2 = sorted(zip(classifier.coef_[0], feature_names))[-n:]
+	data = []
 
-	    print()
+	for coef, feat in topn_class1:
+		print(class_labels[0], coef, feat)
+		data.append([feat, coef])
 
-	    for coef, feat in reversed(topn_class2):
-	        print(class_labels[1], coef, feat)
-	        data.append([feat, coef])
+		print()
 
-    	print(topn_class1)
-    	df = pd.DataFrame(data, columns = ['Word', 'Value'])
-    	print(topn_class1)
-    	print(df)
-    	sns.set(rc={'figure.figsize':(20,8.27)})
-    	graph = sns.barplot(x = 'Word', y = 'Value', data=df, ci=65)
-    	graph
+	for coef, feat in reversed(topn_class2):
+		print(class_labels[1], coef, feat)
+		data.append([feat, coef])
+
+		print(topn_class1)
+		df = pd.DataFrame(data, columns = ['Word', 'Value'])
+		print(topn_class1)
+		print(df)
+		sns.set(rc={'figure.figsize':(20,8.27)})
+		graph = sns.barplot(x = 'Word', y = 'Value', data=df, ci=65)
+		graph
 
 
 most_informative_feature_for_binary_classification(tfidf_vectorizer, linear_clf, n=10)
+@app.route('/')
+def index():
+	return render_template('index.html')
+
 @app.route('/submit')
 def submit():
 	new_input =[['']]
