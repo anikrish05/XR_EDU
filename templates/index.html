@@ -9,36 +9,27 @@
 body{background-color: #E0D7FF; }
     </style>
     <script src = "script.js"></script> 
-<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 
     </head>
     <body>
       <div>
                 Copy Paste Your Article Here
                 <p>
+                    <form action='http://127.0.0.1:5000/submit' method = "POST">
                     <textarea id = "input" name = "userText" style = "width: 100%; height: 30%;" cols = "65" rows = "8" id = "inputText"></textarea>
                         <table width = "100%" cellpadding = "0" cellsapcing = "0%" cellsapcing ="0%">         
                 </p>
-                <input onclick = "ourModel()" type = "submit">
-                <br><br>    
+                <input type = "submit">
+                <br><br> 
+                </form>   
         </div>
         <br><br>
+        <h1>Answer:{{value}}</h1>
         <script>
           function isReset(){
             document.getElementById("input").reset();
           }
-        function ourModel(){
-          fetch('http://127.0.0.1:5000/submit')
-            .then(response => response.json())
-                .then(data => console.log(data));
-        }
-        axios.get('http://127.0.0.1:5000/submit', {
-  params: {
-    "input": document.getElementById('input').val
-  }
-}).then((response)=>{
-console.log(response)
-})
 
         </script>
     </body>
