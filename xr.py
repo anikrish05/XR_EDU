@@ -134,6 +134,24 @@ most_informative_feature_for_binary_classification(tfidf_vectorizer, linear_clf,
 def graph():
 '''
 add code here
+filtered_sentence = [] 
+# setting limits for what goes into the filtered sentence array
+punc = ['.',',','!','@','#','$','%','^','&','*','(',')','-','_','+','=','{','[','}','|','\\',':',';','"',"'",'<','>','/','?','`','~']
+stop_words = set(stopwords.words('english')) 
+word_tokens = word_tokenize(new_input[0][0])
+for w in word_tokens:
+    w = w.lower()
+    # no stop words and no puctuation
+    if w not in stop_words and w not in punc: 
+        filtered_sentence.append(w) 
+relevantWords = []
+for i in range(len(filtered_sentence)):
+  # calculates the term frequency(proportion representing how many times a word appears in the input article) and the inverse document frequency(proportion of documents in our dataset that a specific word appears in) and multplies them
+  # if the word does not appear in our datasets, tfidf value is set to 0
+  try:
+    relevantWords.append(filtered_sentence.count(filtered_sentence[i])/(len(filtered_sentence)-1) * (tfidf_vectorizer.idf_[tfidf_vectorizer.vocabulary_[filtered_sentence[i]]]))
+  except:
+    relevantWords.append(0)
 '''
 	tfidf_values = dict(zip(filtered_sentence, relevantWords))
 	# note that these values represent how notable these words are in helping our model determine whether the article is true or false, not how notable they are in the context of the article
