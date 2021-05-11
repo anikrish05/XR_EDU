@@ -16,6 +16,7 @@ import seaborn as sns
 from nltk.corpus import stopwords 
 from nltk.tokenize import word_tokenize
 import nltk
+import collections
 nltk.download('stopwords')
 nltk.download('punkt')
 app = Flask(__name__)
@@ -130,6 +131,25 @@ print(f'F1: {round(f1_score(y_test,pred)*100,2)}%')
 	#from the csv files and load them up
 most_informative_feature_for_binary_classification(tfidf_vectorizer, linear_clf, n=10)
 
+def graph():
+'''
+add code here
+'''
+	tfidf_values = dict(zip(filtered_sentence, relevantWords))
+	# note that these values represent how notable these words are in helping our model determine whether the article is true or false, not how notable they are in the context of the article
+	# displays words in descending order of tfidf values
+	tfidf_values = dict(sorted(tfidf_values.items(), key = lambda kv: kv[1],reverse = True)) # dictionary
+	tfidf_values = [(k, v) for k, v in tfidf_values.items()] # coverts to tuple
+	top_ten_values = tfidf_values[:10]
+	print(tfidf_values)
+	data3 = []
+	for word,values in top_ten_values:
+	  data3.append([word,values])
+	df3 = pd.DataFrame(data3, columns = ['Word', 'Value'])
+	print(df3)
+	sns.set(rc={'figure.figsize':(20,8.27)})
+	graph = sns.barplot(x = 'Word', y = 'Value', data=df3, ci=65)
+
 
 @app.route('/')
 def index():
@@ -142,6 +162,8 @@ def submit():
 	tfidf_testInput=tfidf_vectorizer.transform(new_input[0])
 	new_output = clf.predict(tfidf_testInput)
 	new_data=new_output.tolist()
+
+	graph()
 
 	return render_template('index.html', value=(json.dumps(new_data)[1:len(json.dumps(new_data))-1]))
 
