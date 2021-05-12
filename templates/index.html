@@ -10,11 +10,10 @@
 body{background-image: linear-gradient(to right, rgb(89, 193, 253), rgb(255, 221, 227));}
 h1 {text-align: center;}
     </style>
-    <script src = "script.js"></script> 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 
     </head>
-    <body>
+    <bodyddd>
       <div>
                 Copy Paste Your Article Here
                 <p>
@@ -27,12 +26,20 @@ h1 {text-align: center;}
                 </form>   
         </div>
         <br><br>
-        <h1>Answer:{{value}}</h1>
-        <img src="data:image/png;base64, {{ plot_url }}">
+        <h1>Answer:</h1>
+        <h1 id='answer'>{{value}}</h1>
+        <img id='img' src="">
         <script>
-          function isReset(){
-            document.getElementById("input").reset();
+          if (document.getElementById('answer').innerHTML=='true'){
+
+            document.getElementById('img').src="static/img/true.png"
           }
+          else if (document.getElementById('answer').innerHTML=='false'){
+
+            document.getElementById('img').src="static/img/false.png"
+          }
+      
+
 
         </script>
     </body>
