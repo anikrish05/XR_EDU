@@ -12,7 +12,6 @@ from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import PassiveAggressiveClassifier
 from sklearn.metrics import accuracy_score, confusion_matrix, precision_score, recall_score, f1_score, classification_report
-import seaborn as sns
 from nltk.corpus import stopwords 
 from nltk.tokenize import word_tokenize
 import nltk
@@ -20,11 +19,13 @@ import collections
 import io
 import base64
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+import matplotlib.pyplot as plt
+import seaborn as sns
 nltk.download('stopwords')
 nltk.download('punkt')
 app = Flask(__name__)
 
-
+'''
 def most_informative_feature_for_binary_classification(vectorizer, classifier, n=100):
 	class_labels = classifier.classes_
 	feature_names = vectorizer.get_feature_names()
@@ -48,7 +49,7 @@ def most_informative_feature_for_binary_classification(vectorizer, classifier, n
 		print(df)
 		plot_url=graph()
 		return plot_url
-
+'''
 df_fake=pd.read_csv('Fake.csv')
 df_true=pd.read_csv('True.csv')
 
@@ -131,7 +132,7 @@ print(f'Precision: {round(precision_score(y_test,pred)*100,2)}%')
 print(f'F1: {round(f1_score(y_test,pred)*100,2)}%')
 	#This function will go inside submit, before that though pull tfidf_vectorizer and linear_clf 
 	#from the csv files and load them up
-
+'''
 def graph():
 
 	filtered_sentence = [] 
@@ -166,7 +167,8 @@ def graph():
 	df3 = pd.DataFrame(data3, columns = ['Word', 'Value'])
 	print(df3)
 
-
+	fig,ax=plt.subplots(figsize=(6,6))
+	ax=sns.set(style="darkgrid")
 	sns.set(rc={'figure.figsize':(20,8.27)})
 	graph = sns.barplot(x = 'Word', y = 'Value', data=df3, ci=65)
 	canvas=FigureCanvas(fig)
@@ -175,7 +177,7 @@ def graph():
 	img.seek(0)
 	plot_url = base64.b64encode(img.getvalue())
 	return plot_url
-
+'''
 
 @app.route('/')
 def index():
@@ -189,9 +191,7 @@ def submit():
 	tfidf_testInput=tfidf_vectorizer.transform(new_input[0])
 	new_output = clf.predict(tfidf_testInput)
 	new_data=new_output.tolist()
-	plot_url=most_informative_feature_for_binary_classification(tfidf_vectorizer, linear_clf, n=10)
 
-
-	return render_template('index.html', value=(json.dumps(new_data)[1:len(json.dumps(new_data))-1]), plot_url=plot_url)
+	return render_template('index.html', value=(json.dumps(new_data)[1:len(json.dumps(new_data))-1]))
 
 
