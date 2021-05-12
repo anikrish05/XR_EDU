@@ -17,6 +17,9 @@ from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 import nltk
 import collections
+import io
+import base64
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 nltk.download('stopwords')
 nltk.download('punkt')
 app = Flask(__name__)
@@ -43,9 +46,8 @@ def most_informative_feature_for_binary_classification(vectorizer, classifier, n
 		df = pd.DataFrame(data, columns = ['Word', 'Value'])
 		print(topn_class1)
 		print(df)
-		sns.set(rc={'figure.figsize':(20,8.27)})
-		graph = sns.barplot(x = 'Word', y = 'Value', data=df, ci=65)
-		graph
+		plot_url=graph()
+		return plot_url
 
 df_fake=pd.read_csv('Fake.csv')
 df_true=pd.read_csv('True.csv')
@@ -129,30 +131,28 @@ print(f'Precision: {round(precision_score(y_test,pred)*100,2)}%')
 print(f'F1: {round(f1_score(y_test,pred)*100,2)}%')
 	#This function will go inside submit, before that though pull tfidf_vectorizer and linear_clf 
 	#from the csv files and load them up
-most_informative_feature_for_binary_classification(tfidf_vectorizer, linear_clf, n=10)
 
 def graph():
-'''
-add code here
-filtered_sentence = [] 
-# setting limits for what goes into the filtered sentence array
-punc = ['.',',','!','@','#','$','%','^','&','*','(',')','-','_','+','=','{','[','}','|','\\',':',';','"',"'",'<','>','/','?','`','~']
-stop_words = set(stopwords.words('english')) 
-word_tokens = word_tokenize(new_input[0][0])
-for w in word_tokens:
-    w = w.lower()
-    # no stop words and no puctuation
-    if w not in stop_words and w not in punc: 
-        filtered_sentence.append(w) 
-relevantWords = []
-for i in range(len(filtered_sentence)):
-  # calculates the term frequency(proportion representing how many times a word appears in the input article) and the inverse document frequency(proportion of documents in our dataset that a specific word appears in) and multplies them
-  # if the word does not appear in our datasets, tfidf value is set to 0
-  try:
-    relevantWords.append(filtered_sentence.count(filtered_sentence[i])/(len(filtered_sentence)-1) * (tfidf_vectorizer.idf_[tfidf_vectorizer.vocabulary_[filtered_sentence[i]]]))
-  except:
-    relevantWords.append(0)
-'''
+
+	filtered_sentence = [] 
+	# setting limits for what goes into the filtered sentence array
+	punc = ['.',',','!','@','#','$','%','^','&','*','(',')','-','_','+','=','{','[','}','|','\\',':',';','"',"'",'<','>','/','?','`','~']
+	stop_words = set(stopwords.words('english')) 
+	word_tokens = word_tokenize(new_input[0][0])
+	for w in word_tokens:
+		w = w.lower()
+    	# no stop words and no puctuation
+		if w not in stop_words and w not in punc: 
+			filtered_sentence.append(w) 
+	relevantWords = []
+	for i in range(len(filtered_sentence)):
+  	# calculates the term frequency(proportion representing how many times a word appears in the input article) and the inverse document frequency(proportion of documents in our dataset that a specific word appears in) and multplies them
+  	# if the word does not appear in our datasets, tfidf value is set to 0
+		try:
+			relevantWords.append(filtered_sentence.count(filtered_sentence[i])/(len(filtered_sentence)-1) * (tfidf_vectorizer.idf_[tfidf_vectorizer.vocabulary_[filtered_sentence[i]]]))
+		except:
+			relevantWords.append(0)
+
 	tfidf_values = dict(zip(filtered_sentence, relevantWords))
 	# note that these values represent how notable these words are in helping our model determine whether the article is true or false, not how notable they are in the context of the article
 	# displays words in descending order of tfidf values
@@ -165,8 +165,16 @@ for i in range(len(filtered_sentence)):
 	  data3.append([word,values])
 	df3 = pd.DataFrame(data3, columns = ['Word', 'Value'])
 	print(df3)
+
+
 	sns.set(rc={'figure.figsize':(20,8.27)})
 	graph = sns.barplot(x = 'Word', y = 'Value', data=df3, ci=65)
+	canvas=FigureCanvas(fig)
+	img = io.BytesIO()
+	fig.savefig(img)
+	img.seek(0)
+	plot_url = base64.b64encode(img.getvalue())
+	return plot_url
 
 
 @app.route('/')
@@ -175,14 +183,15 @@ def index():
 
 @app.route('/submit', methods=['GET', "POST"])
 def submit():
+	global new_input
 	new_input =[[request.form['userText']]]
   #new_output = clf.predict(new_input)
 	tfidf_testInput=tfidf_vectorizer.transform(new_input[0])
 	new_output = clf.predict(tfidf_testInput)
 	new_data=new_output.tolist()
+	plot_url=most_informative_feature_for_binary_classification(tfidf_vectorizer, linear_clf, n=10)
 
-	graph()
 
-	return render_template('index.html', value=(json.dumps(new_data)[1:len(json.dumps(new_data))-1]))
+	return render_template('index.html', value=(json.dumps(new_data)[1:len(json.dumps(new_data))-1]), plot_url=plot_url)
 
 
